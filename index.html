@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Morti ⚡ — Command Board</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Inter:wght@300;400;500;600;700;800&display=swap');
+    :root {
+      --bg: #07090c;
+      --surface: #0d1117;
+      --card: #111820;
+      --border: #1e2530;
+      --text: #cdd6e0;
+      --muted: #4a5568;
+      --accent: #58a6ff;
+      --green: #3fb950;
+      --yellow: #d29922;
+      --red: #f85149;
+      --purple: #bc8cff;
+      --orange: #ffa657;
+    }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { background:var(--bg); color:var(--text); font-family:'Inter',sans-serif; min-height:100vh; }
+
+    header {
+      border-bottom: 1px solid var(--border);
+      padding: 20px 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--surface);
+      position: sticky; top:0; z-index:50;
+    }
+    .header-left { display:flex; align-items:center; gap:16px; }
+    .logo { font-family:'Share Tech Mono',monospace; font-size:1rem; color:var(--accent); letter-spacing:2px; }
+    .logo span { color:var(--muted); }
+    .status-dot { width:8px; height:8px; border-radius:50%; background:var(--green); box-shadow:0 0 8px var(--green); animation: pulse 2s infinite; }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+    .header-right { font-family:'Share Tech Mono',monospace; font-size:0.7rem; color:var(--muted); }
+
+    .board-header {
+      padding: 32px 32px 0;
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+    .board-title { font-size:1.6rem; font-weight:800; color:#fff; }
+    .board-sub { font-size:0.85rem; color:var(--muted); margin-top:4px; }
+    .legend { display:flex; gap:16px; flex-wrap:wrap; }
+    .legend-item { display:flex; align-items:center; gap:6px; font-size:0.72rem; color:var(--muted); font-family:'Share Tech Mono',monospace; }
+    .legend-dot { width:8px; height:8px; border-radius:2px; }
+
+    .board {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      padding: 24px 32px 48px;
+      min-height: calc(100vh - 160px);
+      align-items: start;
+    }
+
+    .column { display:flex; flex-direction:column; gap:12px; }
+    .col-header {
+      display:flex; align-items:center; justify-content:space-between;
+      padding: 10px 14px;
+      border-radius:6px;
+      margin-bottom:4px;
+    }
+    .col-header.backlog { background: rgba(74,85,104,0.15); border:1px solid rgba(74,85,104,0.3); }
+    .col-header.inprogress { background: rgba(88,166,255,0.08); border:1px solid rgba(88,166,255,0.25); }
+    .col-header.blocked { background: rgba(248,81,73,0.08); border:1px solid rgba(248,81,73,0.25); }
+    .col-header.done { background: rgba(63,185,80,0.08); border:1px solid rgba(63,185,80,0.25); }
+
+    .col-title { font-size:0.75rem; font-weight:700; letter-spacing:2px; text-transform:uppercase; font-family:'Share Tech Mono',monospace; }
+    .col-header.backlog .col-title { color:var(--muted); }
+    .col-header.inprogress .col-title { color:var(--accent); }
+    .col-header.blocked .col-title { color:var(--red); }
+    .col-header.done .col-title { color:var(--green); }
+    .col-count { font-size:0.7rem; font-family:'Share Tech Mono',monospace; opacity:0.6; }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius:8px;
+      padding:16px;
+      transition: border-color 0.2s, transform 0.1s;
+      cursor:default;
+    }
+    .card:hover { border-color:#2d3748; transform:translateY(-1px); }
+    .card-top { display:flex; align-items:flex-start; justify-content:space-between; gap:8px; margin-bottom:10px; }
+    .card-title { font-size:0.88rem; font-weight:600; color:#e2e8f0; line-height:1.4; }
+    .priority { width:6px; height:6px; border-radius:50%; flex-shrink:0; margin-top:5px; }
+    .priority.high { background:var(--red); box-shadow:0 0 6px var(--red); }
+    .priority.med { background:var(--yellow); }
+    .priority.low { background:var(--muted); }
+
+    .card-desc { font-size:0.78rem; color:var(--muted); line-height:1.5; margin-bottom:12px; }
+    .card-footer { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:6px; }
+    .tags { display:flex; gap:4px; flex-wrap:wrap; }
+    .tag {
+      font-size:0.62rem; letter-spacing:1px; text-transform:uppercase;
+      font-family:'Share Tech Mono',monospace;
+      padding:2px 7px; border-radius:3px; font-weight:600;
+    }
+    .tag.money { background:rgba(63,185,80,0.12); color:var(--green); border:1px solid rgba(63,185,80,0.2); }
+    .tag.infra  { background:rgba(88,166,255,0.1);  color:var(--accent);  border:1px solid rgba(88,166,255,0.2); }
+    .tag.product{ background:rgba(188,140,255,0.1); color:var(--purple);  border:1px solid rgba(188,140,255,0.2); }
+    .tag.agent  { background:rgba(255,166,87,0.1);  color:var(--orange);  border:1px solid rgba(255,166,87,0.2); }
+    .tag.brand  { background:rgba(248,81,73,0.1);   color:var(--red);     border:1px solid rgba(248,81,73,0.2); }
+    .tag.trading{ background:rgba(210,153,34,0.1);  color:var(--yellow);  border:1px solid rgba(210,153,34,0.2); }
+
+    .blocker-note {
+      font-size:0.72rem; color:var(--red);
+      font-family:'Share Tech Mono',monospace;
+      margin-top:8px;
+      padding:6px 10px;
+      background:rgba(248,81,73,0.06);
+      border-left:2px solid var(--red);
+      border-radius:0 4px 4px 0;
+    }
+
+    .need-from-you {
+      font-size:0.72rem; color:var(--yellow);
+      font-family:'Share Tech Mono',monospace;
+      margin-top:8px;
+      padding:6px 10px;
+      background:rgba(210,153,34,0.06);
+      border-left:2px solid var(--yellow);
+      border-radius:0 4px 4px 0;
+    }
+
+    .summary-bar {
+      border-top:1px solid var(--border);
+      background:var(--surface);
+      padding:16px 32px;
+      display:flex; gap:32px; flex-wrap:wrap;
+      position:fixed; bottom:0; left:0; right:0;
+      font-family:'Share Tech Mono',monospace; font-size:0.72rem;
+    }
+    .stat { display:flex; align-items:center; gap:8px; }
+    .stat-val { color:#fff; font-weight:700; }
+    .stat-label { color:var(--muted); }
+
+    @media(max-width:900px) {
+      .board { grid-template-columns:1fr 1fr; }
+    }
+    @media(max-width:560px) {
+      .board { grid-template-columns:1fr; padding:16px; }
+      header { padding:16px; }
+      .board-header { padding:16px 16px 0; }
+      .summary-bar { display:none; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="header-left">
+    <div class="status-dot"></div>
+    <div class="logo">MORTI<span>/</span>COMMAND</div>
+  </div>
+  <div class="header-right" id="ts">LAST UPDATED: loading...</div>
+</header>
+
+<div class="board-header">
+  <div>
+    <div class="board-title">⚡ Morti's Board</div>
+    <div class="board-sub">Everything in motion. Nothing forgotten.</div>
+  </div>
+  <div class="legend">
+    <div class="legend-item"><div class="legend-dot" style="background:var(--red)"></div>HIGH</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--yellow)"></div>MED</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--muted)"></div>LOW</div>
+  </div>
+</div>
+
+<div class="board">
+
+  <!-- BACKLOG -->
+  <div class="column">
+    <div class="col-header backlog">
+      <span class="col-title">Backlog</span>
+      <span class="col-count">6</span>
+    </div>
+
+    <div class="card">
+      <div class="card-top">
+        <div class="card-title">Grok Agent — Docker Image</div>
+        <div class="priority high"></div>
+      </div>
+      <div class="card-desc">New Docker container with Grok LLM. Foundation for next-gen agent fleet.</div>
+      <div class="need-from-you">▶ Need: Grok API key + server/infra target</div>
+      <div class="card-footer"><div class="tags"><span class="tag infra">Infra</span><span class="tag agent">Agent</span></div></div>
+    </div>
+
+    <div class="card">
+      <div class="card-top">
+        <div class="card-title">Marketplace Agents — Revenue Engine</div>
+        <div class="priority high"></div>
+      </div>
+      <div class="card-desc">Build + list agents on marketplace(s) to generate income. Need to define which marketplace, what capabilities to sell.</div>
+      <div class="need-from-you">▶ Need: Target marketplace (OpenClaw? custom? other?) + agent ideas to sell</div>
+      <div class="card-footer"><div class="tags"><span class="tag money">Money</span><span class="tag agent">Agent</span></div></div>
+    </div>
+
+    <div class="card">
+      <div class="card-top">
+        <div class="card-title">Marketing Agent</div>
+        <div class="priority med"></div>
+      </div>
+      <div class="card-desc">Automated content + social distribution agent. Promotes Morti Fund, DoomsdayBro, and marketplace offerings.</div>
+      <div class="card-footer"><div class="tags"><span class="tag agent">Agent</span><span class="tag brand">Brand</span></div></div>
+    </div>
+
+    <div class="card">
+      <div class="card-top">
+        <div class="card-title">Lead Generation Agent</div>
+        <div class="priority med"></div>
+      </div>
+      <div class="card-desc">Automated outbound for fractional CISO pipeline + marketplace clients. Surfaces warm leads, drafts outreach.</div>
+      <div class="card-footer"><div class="tags"><span class="tag agent">Agent</span><span class="tag money">Money</span></div></div>
+    </div>
+
+    <div class="card">
+      <div class="card-top">
+        <div class="card-title">Real Gmail + Google Calendar</div>
+        <div class="priority high"></div>
+      </div>
+      <div class="card-desc">Connect Rohail's actual inbox and calendar. Unlocks morning briefings with real context — meetings, emails, priorities.</div>
+      <div class="need-from-you">▶ Need: OAuth on real Google account</div>
+      <div class="card-footer"><div class="tags"><span class="tag infra">Infra</span></div></div>
+    </div>
+
+    <div class="card">
+      <div class="card-top">
+        <div class="card-title">Health Stack Integration</div>
+        <div class="priority low"></div>
+      </div>
+      <div class="card-desc">Wearable data → daily health briefing. Recovery scores, sleep, HRV. Need to know what device Rohail uses.</div>
+      <div class="need-from-you">▶ Need: What wearable? (Whoop, Oura, Garmin, Apple Watch?)</div>
+      <div class="card-footer"><div class="tags"><span class="tag product">Product</span></div></div>
+    </div>
+
+  </div>
+
+  <!-- IN PROGRESS -->
+  <div class="column">
+    <div class="col-header inprogress">
+      <span class="col-title">In Progress</span>
+      <span class="col-count">4</span>
+    </div>
+
+    <div class="card">
+      <div class="card-top">
+        <div class="card-title">Morti Fund — Website + Real Domain</div>
+        <div class="priority high"></div>
+      </div>
+      <div class="card-desc">Full site for the paper trading fund. Live P&L, positions, performance chart. Needs real domain + Vercel deployment.</div>
+      <div class="need-from-you">▶ Need: Domain preference (mortifund.com? morti.fund?) + Vercel account connected</div>
+      <div class="card-footer"><div class="tags"><span class="tag trading">Trading</span><span class="tag product">Product</span></div></div>
+    </div>
+
+    <div class="card">
+      <div class="card-top">
+        <div class="card-title">Portfolio Tracker Site Build</div>
+        <div class="priority high"></div>
+      </div>
+      <div class="card-desc">Claude Code building the dashboard — live positions, P&L, history chart, Alpaca data feed. Blocked on domain/Vercel for final deploy.</div>
+      <div class="card-footer"><div class="tags"><span class="tag trading">Trading</span><span class="tag product">Product</span></div></div>
+    </div>
+
+    <div class="card">
+      <div class="card-top">
+        <div class="card-title">Vercel Integration</div>
+        <div class="priority high"></div>
+      </div>
+      <div class="card-desc">Connect Vercel so all sites (Morti Fund, DoomsdayBro, Kanban) deploy properly with custom domains and auto-deploy on push.</div>
+      <div class="need-from-you">▶ Need: Vercel account token / invite Morti as team member</div>
+      <div class="card-footer"><div class="tags"><span class="tag infra">Infra</span></div></div>
+    </div>
+
+    <div class="card">
+      <div class="card-top">
+        <div class="card-title">Active Paper Trades — Alpaca</div>
+        <div class="priority high"></div>
+      </div>
+      <div class="card-desc">$150k deployed across NVDA, SOXL, TQQQ, META, HIMS. Monitoring daily. Swing positions — no fixed close schedule.</div>
+      <div class="card-footer"><div class="tags"><span class="tag trading">Trading</span><span class="tag money">Money</span></div></div>
+    </div>
+
+  </div>
+
+  <!-- BLOCKED -->
+  <div class="column">
+    <div class="col-header blocked">
+      <span class="col-title">Blocked</span>
+      <span class="col-count">2</span>
+    </div>
+
+    <div class="card">
+      <div class="card-top">
+        <div class="card-title">Domain Purchases</div>
+        <div class="priority high"></div>
+      </div>
+      <div class="card-desc">Need domains for: Morti Fund, DoomsdayBro, and agent marketplace presence.</div>
+      <div class="blocker-note">✕ Blocked: Need registrar access or budget approval to purchase</div>
+      <div class="need-from-you">▶ Need: Namecheap/GoDaddy/Cloudflare access or confirm domains to buy</div>
+      <div class="card-footer"><div class="tags"><span class="tag infra">Infra</span><span class="tag brand">Brand</span></div></div>
+    </div>
+
+    <div class="card">
+      <div class="card-top">
+        <div class="card-title">5 AM Briefings — Delivery Confirmed?</div>
+        <div class="priority med"></div>
+      </div>
+      <div class="card-desc">Market intel + CISO opportunity scan crons are set. First live run tomorrow at 5 AM. Monitoring delivery.</div>
+      <div class="blocker-note">✕ First run not yet confirmed — validating tomorrow</div>
+      <div class="card-footer"><div class="tags"><span class="tag agent">Agent</span></div></div>
+    </div>
+
+  </div>
+
+  <!-- DONE -->
+  <div class="column">
+    <div class="col-header done">
+      <span class="col-title">Done</span>
+      <span class="col-count">4</span>
+    </div>
+
+    <div class="card">
+      <div class="card-top">
+        <div class="card-title">Fractional CISO Opportunity Scanner</div>
+        <div class="priority high"></div>
+      </div>
+      <div class="card-desc">Daily cron at 5 AM. Scans TechCrunch funding feed, scores Series A-C for CISO fit, drops top 5 to Discord.</div>
+      <div class="card-footer"><div class="tags"><span class="tag money">Money</span><span class="tag agent">Agent</span></div></div>
+    </div>
+
+    <div class="card">
+      <div class="card-top">
+        <div class="card-title">5 AM Market Intel Briefing Cron</div>
+        <div class="priority high"></div>
+      </div>
+      <div class="card-desc">Daily cron — macro signals, InfoSec news, AI/tech moves, edge signal. Hits Discord at 5 AM every morning.</div>
+      <div class="card-footer"><div class="tags"><span class="tag agent">Agent</span></div></div>
+    </div>
+
+    <div class="card">
+      <div class="card-top">
+        <div class="card-title">DoomsdayBro Landing Page</div>
+        <div class="priority med"></div>
+      </div>
+      <div class="card-desc">Live on GitHub Pages. Dark conspiratorial aesthetic, 6 threads, manifesto, email signup. Ready to share.</div>
+      <div class="card-footer">
+        <div class="tags"><span class="tag brand">Brand</span><span class="tag product">Product</span></div>
+        <a href="https://johnsmith994751151075-cloud.github.io/doomsday-bro/" target="_blank" style="font-size:0.65rem;color:var(--accent);font-family:'Share Tech Mono',monospace;text-decoration:none;">↗ LIVE</a>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-top">
+        <div class="card-title">Alpaca Paper Trading — Connected</div>
+        <div class="priority high"></div>
+      </div>
+      <div class="card-desc">Paper account live. $100k equity. API connected. First trades placed today across NVDA, SOXL, TQQQ, META, HIMS.</div>
+      <div class="card-footer"><div class="tags"><span class="tag trading">Trading</span><span class="tag infra">Infra</span></div></div>
+    </div>
+
+  </div>
+</div>
+
+<div class="summary-bar">
+  <div class="stat"><span class="stat-val">16</span><span class="stat-label">Total Items</span></div>
+  <div class="stat"><span class="stat-val" style="color:var(--accent)">4</span><span class="stat-label">In Progress</span></div>
+  <div class="stat"><span class="stat-val" style="color:var(--red)">2</span><span class="stat-label">Blocked</span></div>
+  <div class="stat"><span class="stat-val" style="color:var(--green)">4</span><span class="stat-label">Done</span></div>
+  <div class="stat"><span class="stat-val" style="color:var(--muted)">6</span><span class="stat-label">Backlog</span></div>
+  <div class="stat" style="margin-left:auto"><span class="stat-label">Updated by Morti ⚡ —&nbsp;</span><span class="stat-val" id="ts2">now</span></div>
+</div>
+
+<script>
+  const now = new Date();
+  const fmt = now.toLocaleString('en-US', {month:'short',day:'numeric',hour:'numeric',minute:'2-digit',hour12:true});
+  document.getElementById('ts').textContent = 'LAST UPDATED: ' + fmt.toUpperCase();
+  document.getElementById('ts2').textContent = fmt;
+</script>
+</body>
+</html>
