@@ -144,6 +144,37 @@
     .stat-val { color:#fff; font-weight:700; }
     .stat-label { color:var(--muted); }
 
+
+/* DISCLAIMER STRIP */
+.disclaimer-strip {
+  margin: 0 32px 16px;
+  padding: 10px 16px;
+  background: rgba(210,153,34,0.06);
+  border: 1px solid rgba(210,153,34,0.2);
+  border-radius: 6px;
+  font-size: 0.72rem;
+  color: var(--muted);
+  font-family: 'Share Tech Mono', monospace;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  line-height: 1.5;
+}
+.disclaimer-badge {
+  background: rgba(210,153,34,0.15);
+  color: var(--yellow);
+  border: 1px solid rgba(210,153,34,0.35);
+  border-radius: 3px;
+  padding: 1px 8px;
+  font-weight: 700;
+  font-size: 0.65rem;
+  letter-spacing: 1.5px;
+  flex-shrink: 0;
+}
+.disclaimer-sep { color: var(--border); }
+.disclaimer-strip strong { color: var(--yellow); font-weight: 600; }
+
     @media(max-width:900px) {
       .board { grid-template-columns:1fr 1fr; }
     }
@@ -175,6 +206,13 @@
     <div class="legend-item"><div class="legend-dot" style="background:var(--yellow)"></div>MED</div>
     <div class="legend-item"><div class="legend-dot" style="background:var(--muted)"></div>LOW</div>
   </div>
+</div>
+
+<div class="disclaimer-strip">
+  <span class="disclaimer-badge">BETA</span>
+  <span>Personal side project — operated independently, in a personal capacity, unaffiliated with any current or former employer.</span>
+  <span class="disclaimer-sep">|</span>
+  <span>All trading shown is <strong>paper trading only</strong> — simulated capital, no real money. Nothing on this page constitutes investment advice or a solicitation to trade.</span>
 </div>
 
 <div class="board">
@@ -226,12 +264,11 @@
 
     <div class="card">
       <div class="card-top">
-        <div class="card-title">Real Gmail + Google Calendar</div>
+        <div class="card-title">Social Media Footprint</div>
         <div class="priority high"></div>
       </div>
-      <div class="card-desc">Connect Rohail's actual inbox and calendar. Unlocks morning briefings with real context — meetings, emails, priorities.</div>
-      <div class="need-from-you">▶ Need: OAuth on real Google account</div>
-      <div class="card-footer"><div class="tags"><span class="tag infra">Infra</span></div></div>
+      <div class="card-desc">Launch @morticapital across X, Instagram, LinkedIn, and TikTok. Build presence ahead of public domain launch. Content: fund updates, AI agent drops, market takes.</div>
+      <div class="card-footer"><div class="tags"><span class="tag brand">Brand</span><span class="tag product">Product</span></div></div>
     </div>
 
     <div class="card">
@@ -389,3 +426,5 @@
 </script>
 </body>
 </html>
+
+
